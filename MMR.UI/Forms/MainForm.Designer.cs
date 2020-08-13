@@ -41,6 +41,9 @@ namespace MMR.UI.Forms
             this.cUserItems = new System.Windows.Forms.CheckBox();
             this.tSettings = new System.Windows.Forms.TabControl();
             this.tabMain = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
+            this.multiworld_count = new System.Windows.Forms.TextBox();
+            this.cMulti = new System.Windows.Forms.CheckBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.bToggleTricks = new System.Windows.Forms.Button();
@@ -256,6 +259,9 @@ namespace MMR.UI.Forms
             // 
             // tabMain
             // 
+            this.tabMain.Controls.Add(this.label2);
+            this.tabMain.Controls.Add(this.multiworld_count);
+            this.tabMain.Controls.Add(this.cMulti);
             this.tabMain.Controls.Add(this.panel1);
             this.tabMain.Controls.Add(this.groupBox9);
             this.tabMain.Controls.Add(this.groupBox6);
@@ -269,6 +275,34 @@ namespace MMR.UI.Forms
             this.tabMain.TabIndex = 0;
             this.tabMain.Text = "Main Settings";
             this.tabMain.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(85, 265);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(70, 13);
+            this.label2.TabIndex = 33;
+            this.label2.Text = "Player Count:";
+            // 
+            // multiworld_count
+            // 
+            this.multiworld_count.Location = new System.Drawing.Point(158, 261);
+            this.multiworld_count.Name = "multiworld_count";
+            this.multiworld_count.Size = new System.Drawing.Size(164, 20);
+            this.multiworld_count.TabIndex = 32;
+            this.multiworld_count.TextChanged += new System.EventHandler(this.multiworld_count_TextChanged);
+            // 
+            // cMulti
+            // 
+            this.cMulti.AutoSize = true;
+            this.cMulti.Location = new System.Drawing.Point(17, 263);
+            this.cMulti.Name = "cMulti";
+            this.cMulti.Size = new System.Drawing.Size(73, 17);
+            this.cMulti.TabIndex = 31;
+            this.cMulti.Text = "Multiworld";
+            this.cMulti.UseVisualStyleBackColor = true;
+            this.cMulti.CheckedChanged += new System.EventHandler(this.is_multiworld_CheckedChanged);
             // 
             // panel1
             // 
@@ -1763,6 +1797,7 @@ namespace MMR.UI.Forms
             this.mMenu.Size = new System.Drawing.Size(679, 24);
             this.mMenu.TabIndex = 12;
             this.mMenu.Text = "mMenu";
+            this.mMenu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.mMenu_ItemClicked);
             // 
             // mFile
             // 
@@ -2003,6 +2038,7 @@ namespace MMR.UI.Forms
             this.Load += new System.EventHandler(this.mmrMain_Load);
             this.tSettings.ResumeLayout(false);
             this.tabMain.ResumeLayout(false);
+            this.tabMain.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.groupBox9.ResumeLayout(false);
@@ -2195,6 +2231,9 @@ namespace MMR.UI.Forms
         private System.Windows.Forms.CheckBox cByoAmmo;
         private System.Windows.Forms.CheckBox cDeathMoonCrash;
         private System.Windows.Forms.CheckBox cElegySpeedups;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox multiworld_count;
+        private System.Windows.Forms.CheckBox cMulti;
     }
 }
 

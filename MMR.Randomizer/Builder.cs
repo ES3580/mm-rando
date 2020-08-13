@@ -29,6 +29,8 @@ namespace MMR.Randomizer
 {
     public class Builder
     {
+        private static int player = 0;
+        private static int player2 = 0;
         private RandomizedResult _randomized;
         private CosmeticSettings _cosmeticSettings;
         private MessageTable _messageTable;
@@ -1680,7 +1682,7 @@ namespace MMR.Randomizer
                 WriteAsmPatch(asm);
                 
                 progressReporter.ReportProgress(71, outputSettings.GeneratePatch ? "Generating patch..." : "Computing hash...");
-                hash = RomUtils.CreatePatch(outputSettings.GeneratePatch ? outputSettings.OutputROMFilename : null, originalMMFileList);
+                hash = RomUtils.CreatePatch(outputSettings.GeneratePatch ? (outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString())) : null, originalMMFileList);
 
                 // Write subset of Asm config post-patch
                 WriteAsmConfig(asm, hash);
@@ -1688,7 +1690,7 @@ namespace MMR.Randomizer
                 if (_randomized.Settings.DrawHash || outputSettings.GeneratePatch)
                 {
                     var iconStripIcons = asm.Symbols.ReadHashIconsTable();
-                    OutputHashIcons(ImageUtils.GetIconIndices(hash).Select(index => iconStripIcons[index]), Path.ChangeExtension(outputSettings.OutputROMFilename, "png"));
+                    OutputHashIcons(ImageUtils.GetIconIndices(hash).Select(index => iconStripIcons[index]), Path.ChangeExtension((outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString())), "png"));
                 }
             }
             WriteMiscellaneousChanges();
@@ -1713,17 +1715,17 @@ namespace MMR.Randomizer
                 if (outputSettings.GenerateROM)
                 {
                     progressReporter.ReportProgress(85, "Writing ROM...");
-                    RomUtils.WriteROM(outputSettings.OutputROMFilename, ROM);
+                    RomUtils.WriteROM(outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString()), ROM);
                 }
 
                 if (outputSettings.OutputVC)
                 {
                     progressReporter.ReportProgress(90, "Writing VC...");
-                    VCInjectionUtils.BuildVC(ROM, _cosmeticSettings.AsmOptions.DPadConfig, Values.VCDirectory, Path.ChangeExtension(outputSettings.OutputROMFilename, "wad"));
+                    VCInjectionUtils.BuildVC(ROM, _cosmeticSettings.AsmOptions.DPadConfig, Values.VCDirectory, Path.ChangeExtension(outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString()), "wad"));
                 }
             }
             progressReporter.ReportProgress(100, "Done!");
-
+            player2 = player2 + 1;
         }
 
     }

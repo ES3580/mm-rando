@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace MMR.Randomizer.Models.Settings
 {
@@ -13,7 +14,11 @@ namespace MMR.Randomizer.Models.Settings
     public class GameplaySettings
     {
         #region General settings
-
+        public string sPlayerCount { get; set; } = "";
+        /// <summary>
+        /// Is the game a multiworld?
+        /// </summary>
+        public bool IsMultiworld { get; set; } = false;
         /// <summary>
         /// Filepath to the input logic file
         /// </summary>
@@ -403,6 +408,20 @@ namespace MMR.Randomizer.Models.Settings
 
         public string Validate()
         {
+            System.Diagnostics.Debug.WriteLine("Entering GamePlaySettings.Validate()");
+            //checks multiworld settings
+            if (IsMultiworld)
+            {
+                if (!Regex.IsMatch(sPlayerCount, @"\d") || ((Int32.Parse(sPlayerCount) < 2) || (Int32.Parse(sPlayerCount) > 255)))
+                {
+                    return "Palyer count must be 2 through 255\nCount: " + sPlayerCount;
+                }
+            }
+            else
+            {
+                sPlayerCount = "1";
+            }
+
             if (LogicMode == LogicMode.UserLogic && !File.Exists(UserLogicFileName))
             {
                 return "User Logic not found or invalid, please load User Logic or change logic mode.";
@@ -419,6 +438,8 @@ namespace MMR.Randomizer.Models.Settings
             {
                 return "Invalid junk locations list.";
             }
+
+            System.Diagnostics.Debug.WriteLine("Exiting GamePlaySettings.Validate() Success");
             return null;
         }
 

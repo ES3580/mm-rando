@@ -233,6 +233,7 @@ namespace MMR.UI.Forms
 
         private void Randomize()
         {
+            System.Diagnostics.Debug.WriteLine("Entering Randomize()");
             var validationResult = _configuration.GameplaySettings.Validate() ?? _configuration.OutputSettings.Validate();
             if (validationResult != null)
             {
@@ -252,13 +253,17 @@ namespace MMR.UI.Forms
 
             _configuration.OutputSettings.OutputROMFilename = saveROM.FileName;
 
+            System.Diagnostics.Debug.WriteLine("Starting bgWorker.RunworkerAsync()");
             EnableAllControls(false);
             bgWorker.RunWorkerAsync();
+            System.Diagnostics.Debug.WriteLine("Exiting Randomize()");
         }
 
         private void bRandomise_Click(object sender, EventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("Forms randomized clicked bRandomise_Click()");
             Randomize();
+            
         }
 
         private void bApplyPatch_Click(object sender, EventArgs e)
@@ -301,6 +306,10 @@ namespace MMR.UI.Forms
             cVC.Checked = _configuration.OutputSettings.OutputVC;
             cPatch.Checked = _configuration.OutputSettings.GeneratePatch;
 
+
+            //I HAVE NO IDEA WHY I CANNOT PUT THESE IN MULTIWORLD SETTINGS
+            multiworld_count.Text = _configuration.GameplaySettings.sPlayerCount;
+            cMulti.Checked = _configuration.GameplaySettings.IsMultiworld;
             cUserItems.Checked = _configuration.GameplaySettings.UseCustomItemList;
             cAdditional.Checked = _configuration.GameplaySettings.AddOther;
             cSoS.Checked = _configuration.GameplaySettings.ExcludeSongOfSoaring;
@@ -426,6 +435,15 @@ namespace MMR.UI.Forms
 
             UpdateSingleSetting(() => _configuration.GameplaySettings.UseCustomItemList = cUserItems.Checked);
 
+        }
+        private void is_multiworld_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSingleSetting(() => _configuration.GameplaySettings.IsMultiworld = cMulti.Checked);
+        }
+
+        private void multiworld_count_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSingleSetting(() => _configuration.GameplaySettings.sPlayerCount = multiworld_count.Text);
         }
 
         private void cN64_CheckedChanged(object sender, EventArgs e)
@@ -888,6 +906,8 @@ namespace MMR.UI.Forms
         {
             if (_configuration.GameplaySettings.LogicMode == LogicMode.Vanilla)
             {
+                cMulti.Enabled = false;
+
                 cMixSongs.Enabled = false;
                 cSoS.Enabled = false;
                 cDChests.Enabled = false;
@@ -915,6 +935,8 @@ namespace MMR.UI.Forms
             }
             else
             {
+                cMulti.Enabled = true;
+
                 cMixSongs.Enabled = true;
                 cDEnt.Enabled = true;
                 cSpoiler.Enabled = true;
@@ -1121,7 +1143,8 @@ namespace MMR.UI.Forms
             {
                 OutputSettings = new OutputSettings(),
                 GameplaySettings = new GameplaySettings(),
-                CosmeticSettings = new CosmeticSettings(),
+                CosmeticSettings = new CosmeticSettings()//,
+                //MultiworldSettings = new MultiworldSettings()
             };
 
             tSeed.Text = Math.Abs(Environment.TickCount).ToString();
@@ -1384,6 +1407,11 @@ namespace MMR.UI.Forms
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void mMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
         }
     }
 }

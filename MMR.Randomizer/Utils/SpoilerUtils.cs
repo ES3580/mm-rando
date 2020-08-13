@@ -12,6 +12,7 @@ namespace MMR.Randomizer.Utils
 {
     public static class SpoilerUtils
     {
+        private static int player = 0;
         public static void CreateSpoilerLog(RandomizedResult randomized, GameplaySettings settings, OutputSettings outputSettings)
         {
             var itemList = randomized.ItemList
@@ -21,6 +22,7 @@ namespace MMR.Randomizer.Utils
 
             var directory = Path.GetDirectoryName(outputSettings.OutputROMFilename);
             var filename = $"{Path.GetFileNameWithoutExtension(outputSettings.OutputROMFilename)}";
+   
 
             var plainTextRegex = new Regex("[^a-zA-Z0-9' .\\-]+");
             Spoiler spoiler = new Spoiler()
@@ -66,7 +68,14 @@ namespace MMR.Randomizer.Utils
             
             if (outputSettings.GenerateSpoilerLog)
             {
-                CreateTextSpoilerLog(spoiler, Path.Combine(directory, filename + "_SpoilerLog.txt"));
+                /****
+                * creating spoilers of dif name with player id at end
+                * 
+                *****/
+
+
+                CreateTextSpoilerLog(spoiler, Path.Combine(directory, filename + "_SpoilerLog_" + player.ToString() + ".txt"));
+                player = player + 1;
             }
         }
 

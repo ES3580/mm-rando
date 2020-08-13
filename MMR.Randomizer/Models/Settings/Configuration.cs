@@ -8,7 +8,7 @@ namespace MMR.Randomizer.Models.Settings
         public GameplaySettings GameplaySettings { get; set; }
         public CosmeticSettings CosmeticSettings { get; set; }
         public OutputSettings OutputSettings { get; set; }
-
+        public MultiworldSettings MultiworldSettings { get; set; }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this, _jsonSerializerSettings);

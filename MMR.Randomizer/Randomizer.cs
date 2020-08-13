@@ -20,7 +20,7 @@ namespace MMR.Randomizer
     public class Randomizer
     {
         public static readonly string AssemblyVersion = typeof(Randomizer).Assembly.GetName().Version.ToString();
-
+        private static int player = 0;
         private Random Random { get; set; }
 
         public ItemList ItemList { get; set; }
@@ -287,6 +287,7 @@ namespace MMR.Randomizer
 
         private void PrepareRulesetItemData()
         {
+            System.Diagnostics.Debug.WriteLine("Entering PrepareRulesetItemData()");
             if (_settings.LogicMode == LogicMode.Casual
                 || _settings.LogicMode == LogicMode.Glitched
                 || _settings.LogicMode == LogicMode.UserLogic)
@@ -311,6 +312,7 @@ namespace MMR.Randomizer
             {
                 throw new Exception($"Too many Enforced Junk Locations. Select up to {ItemUtils.JunkItems.Count}.");
             }
+            System.Diagnostics.Debug.WriteLine("Exiting PrepareRulesetItemData()");
         }
 
         private void UpdateCustomItemListSettings()
@@ -768,6 +770,7 @@ namespace MMR.Randomizer
 
         private void PlaceItem(Item currentItem, List<Item> targets)
         {
+            System.Diagnostics.Debug.WriteLine("Entering PlaceItem() on " + currentItem);
             var currentItemObject = ItemList[currentItem];
             if (currentItemObject.NewLocation.HasValue)
             {
@@ -812,6 +815,7 @@ namespace MMR.Randomizer
 
         private void RandomizeItems()
         {
+            System.Diagnostics.Debug.WriteLine("Entering RandomizeItems()");
             if (_settings.UseCustomItemList)
             {
                 SetupCustomItems();
@@ -822,6 +826,13 @@ namespace MMR.Randomizer
             }
 
             var itemPool = new List<Item>();
+
+
+            //ETHAN MULTIWORLD BREAKDOWN
+
+
+
+
 
             AddAllItems(itemPool);
 
@@ -844,7 +855,10 @@ namespace MMR.Randomizer
             PlaceOther(itemPool);
             PlaceTingleMaps(itemPool);
 
+
+            //after all items are placed
             _randomized.ItemList = ItemList;
+            
         }
 
         /// <summary>
@@ -1107,6 +1121,7 @@ namespace MMR.Randomizer
         /// </summary>
         private void Setup()
         {
+            System.Diagnostics.Debug.WriteLine("Entering Setup()");
             if (_settings.ExcludeSongOfSoaring)
             {
                 ItemList[Item.SongSoaring].NewLocation = Item.SongSoaring;
@@ -1185,6 +1200,7 @@ namespace MMR.Randomizer
             {
                 PreserveGlitchedCowMilk();
             }
+            System.Diagnostics.Debug.WriteLine("Exiting Setup()");
         }
 
         /// <summary>
@@ -1438,9 +1454,12 @@ namespace MMR.Randomizer
         /// </summary>
         public RandomizedResult Randomize(IProgressReporter progressReporter)
         {
+
+            System.Diagnostics.Debug.WriteLine("Entering Randomizer.Randomize()");
             SeedRNG();
 
-            _randomized = new RandomizedResult(_settings, _seed);
+            _randomized = new RandomizedResult(_settings, _seed+player);
+            player = player + 1;
 
             if (_settings.LogicMode != LogicMode.Vanilla)
             {
@@ -1549,6 +1568,7 @@ namespace MMR.Randomizer
                 _randomized.TitleLogoColor = Random.Next(360);
             }
 
+            System.Diagnostics.Debug.WriteLine("Exiting Randomizer.Randomize()");
             return _randomized;
         }
     }
