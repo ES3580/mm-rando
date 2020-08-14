@@ -2,6 +2,7 @@
 using MMR.Randomizer.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MMR.Randomizer
 {
@@ -23,9 +24,12 @@ namespace MMR.Randomizer
         {
             get
             {
+
                 return this.FirstOrDefault(io => io.Name == key);
             }
         }
+
+
     }
 
 }

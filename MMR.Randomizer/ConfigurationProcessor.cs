@@ -6,6 +6,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using MMR.Randomizer.GameObjects;
+using System.Xml.Schema;
 
 namespace MMR.Randomizer
 {
@@ -97,6 +100,8 @@ namespace MMR.Randomizer
                          * randomized is the object containing playthrough data
                          * can randomizer.Randomize() be called multiple times then swap adjacent array elems?
                          * **************************/
+
+                        /*
                         if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
                             && configuration.GameplaySettings.LogicMode != LogicMode.Vanilla)
                         {
@@ -105,6 +110,8 @@ namespace MMR.Randomizer
                             System.Diagnostics.Debug.WriteLine("Building spoiler log for player: " + player.ToString());
                             SpoilerUtils.CreateSpoilerLog(players_randomized[player], configuration.GameplaySettings, configuration.OutputSettings);
                         }
+
+                        */
                     }
                     catch (RandomizationException ex)
                     {
@@ -118,6 +125,22 @@ namespace MMR.Randomizer
                 }
             }
 
+
+            Merge_worlds(players_randomized);
+            if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
+                && configuration.GameplaySettings.LogicMode != LogicMode.Vanilla)
+            {
+                for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
+                {
+
+
+                    //randomized was swaped with list counterpart also spoiler log func
+                    //changed to make multiple logs
+                    System.Diagnostics.Debug.WriteLine("Building spoiler log for player: " + player.ToString());
+                    SpoilerUtils.CreateSpoilerLog(players_randomized[player], configuration.GameplaySettings, configuration.OutputSettings);
+
+                }
+            }
 
             //building the tbl for multi
             for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
@@ -177,7 +200,65 @@ namespace MMR.Randomizer
             return null;
             //return "Generation complete!";
         }
+
+
+        public static void Merge_worlds(List<RandomizedResult> worlds)
+        {
+            int player_count = worlds.Count();
+            int min_items = worlds[0].ItemList.Count();
+
+            //find min
+            foreach ( RandomizedResult i in worlds )
+            {
+                min_items = (i.ItemList.Count < min_items) ? i.ItemList.Count : min_items;
+                //players_item_list.Add(i.ItemList);
+
+            }
+
+            ItemObject[][] world_items = new ItemObject[player_count][];
+            for( int player = 0; player < player_count; player++ )
+            {
+                world_items[player] = worlds[player].ItemList.ToArray();
+
+            }
+
+            //shuffle
+            Shuffle(new Random(), world_items, min_items);
+
+            for (int player = 0; player < player_count; player++)
+            {
+                ItemList temp = new ItemList();
+                int length = world_items[player].Length;
+                for(int i = 0; i < length; i++ )
+                {
+                    temp.Add(world_items[0][0]);
+                    
+                }
+                worlds[player].ItemList = temp;
+
+            }
+            // by this point all the worlds have their items back
+        }
+
+        public static void Shuffle<T>(Random random, T[][] array, int lengthRow)
+        {
+
+            for (int i = array.Length - 1; i > 0; i--)
+            {
+                int i0 = i / lengthRow;
+                int i1 = i % lengthRow;
+
+                int j = random.Next(i + 1);
+                int j0 = j / lengthRow;
+                int j1 = j % lengthRow;
+
+                T temp = array[i0][i1];
+                array[i0][i1] = array[j0][j1];
+                array[j0][j1] = temp;
+            }
+        }
     }
+
 
     public interface IProgressReporter
     {
