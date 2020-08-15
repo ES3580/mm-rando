@@ -20,7 +20,7 @@ namespace MMR.Randomizer
     public class Randomizer
     {
         public static readonly string AssemblyVersion = typeof(Randomizer).Assembly.GetName().Version.ToString();
-        private static int player = 0;
+
         private Random Random { get; set; }
 
         public ItemList ItemList { get; set; }
@@ -76,12 +76,14 @@ namespace MMR.Randomizer
 
         private GameplaySettings _settings;
         private int _seed;
+        private int _player;
         private RandomizedResult _randomized;
 
-        public Randomizer(GameplaySettings settings, int seed)
+        public Randomizer(GameplaySettings settings, int seed, int player)
         {
             _settings = settings;
             _seed = seed;
+            _player = player;
             if (!_settings.PreventDowngrades)
             {
                 ForbiddenReplacedBy[Item.MaskKeaton].AddRange(ItemUtils.DowngradableItems());
@@ -366,9 +368,9 @@ namespace MMR.Randomizer
             }
         }
 
-        private void SeedRNG()
+        private void SeedRNG(int player)
         {
-            Random = new Random(_seed);
+            Random = new Random(_seed+player);
         }
 
         private Dependence CheckDependence(Item currentItem, Item target, List<Item> dependencyPath)
@@ -1456,10 +1458,11 @@ namespace MMR.Randomizer
         {
 
             System.Diagnostics.Debug.WriteLine("Entering Randomizer.Randomize()");
-            SeedRNG();
+            SeedRNG(_player);
 
-            _randomized = new RandomizedResult(_settings, _seed+player);
-            player = player + 1;
+            //seed already has player data
+            _randomized = new RandomizedResult(_settings, _seed);
+
 
             if (_settings.LogicMode != LogicMode.Vanilla)
             {
@@ -1558,11 +1561,11 @@ namespace MMR.Randomizer
                     progressReporter.ReportProgress(35, "Making gossip quotes...");
 
                     //gossip
-                    SeedRNG();
+                    SeedRNG(_player);
                     MakeGossipQuotes();
                 }
 
-                SeedRNG();
+                SeedRNG(_player);
                 _randomized.FileSelectSkybox = Random.Next(360);
                 _randomized.FileSelectColor = Random.Next(360);
                 _randomized.TitleLogoColor = Random.Next(360);

@@ -35,13 +35,15 @@ namespace MMR.Randomizer
         private CosmeticSettings _cosmeticSettings;
         private MessageTable _messageTable;
         private ExtendedObjects _extendedObjects;
+        private Multi_tbl_entry[] _multitable;
 
-        public Builder(RandomizedResult randomized, CosmeticSettings cosmeticSettings)
+        public Builder(RandomizedResult randomized, CosmeticSettings cosmeticSettings, Multi_tbl_entry[] multitable)
         {
             _randomized = randomized;
             _cosmeticSettings = cosmeticSettings;
             _messageTable = new MessageTable();
             _extendedObjects = null;
+            _multitable = multitable;
         }
 
         #region Sequences, sounds and BGM

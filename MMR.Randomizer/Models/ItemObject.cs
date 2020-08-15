@@ -19,5 +19,7 @@ namespace MMR.Randomizer.Models
         public string TrickTooltip { get; set; }
 
         public bool IsRandomized { get; set; }
+
+        public int Mulitoworld_player_id { get; set; }
     }
 }

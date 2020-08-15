@@ -15,20 +15,22 @@ namespace MMR.Randomizer
     //this is the loading of multi table
     public struct Multi_tbl_entry
     {
-        public Multi_tbl_entry(UInt64 address, UInt16 scene_num, UInt32 flag_num)
+        public Multi_tbl_entry(UInt64 address, UInt16 scene_num, UInt16 flag_num, UInt16 player_num)
         {
             addr = address;
             scene = scene_num;
             flag = flag_num;
+            player = player_num;
             //asdfasdfas
-                //afgawrg
-                //add player to id
+            //afgawrg
+            //add player to id
 
         }
 
         public UInt64 addr { get; }
         public UInt32 scene { get; }
-        public UInt32 flag { get; }
+        public UInt16 flag { get; }
+        public UInt16 player { get; }
 
     }
 
@@ -37,6 +39,7 @@ namespace MMR.Randomizer
     {
         public static string Process(Configuration configuration, int seed, IProgressReporter progressReporter)
         {
+            int player_count = Int32.Parse(configuration.GameplaySettings.sPlayerCount);
             System.Diagnostics.Debug.WriteLine("Entering Process");
             if (!Directory.Exists(Path.Combine(Values.MainDirectory, "Resources")))
             {
@@ -56,33 +59,18 @@ namespace MMR.Randomizer
             //loop for player count times
             System.Diagnostics.Debug.WriteLine("Process() with playercount = " + configuration.GameplaySettings.sPlayerCount + " should be at 1<=x<=255");
             List<Randomizer> players_randomizer = new List<Randomizer>();
-            for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
+            List<RandomizedResult> players_randomized = new List<RandomizedResult>();
+            for (int player = 0; player < player_count; player++)
             {
                 System.Diagnostics.Debug.WriteLine("Building player Randomizer for player: " + player.ToString());
-                players_randomizer.Add(new Randomizer(configuration.GameplaySettings, seed+player));
+                players_randomizer.Add(new Randomizer(configuration.GameplaySettings, seed, player));
+                System.Diagnostics.Debug.WriteLine("Appending null to players_randomized list for player: " + player.ToString());
+                //original RandomizedResult randomized = null;
+                players_randomized.Add(null);
             }
             //original  var randomizer = new Randomizer(configuration.GameplaySettings, seed);
 
-
-
-            /********
-             * loop over creating worlds objects
-             * 
-             * 
-             *************/
-
-            //RandomizedResult randomized is the FINAL ranodomized object
-            List<RandomizedResult> players_randomized = new List<RandomizedResult>();
-            System.Diagnostics.Debug.WriteLine("Player count before null arr: " + configuration.GameplaySettings.sPlayerCount);
-            for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
-            {
-                System.Diagnostics.Debug.WriteLine("Appending null to players_randomized list for player: " + player.ToString());
-                players_randomized.Add(null);
-            }
-            //original RandomizedResult randomized = null;
-
-
-            for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
+            for (int player = 0; player < player_count; player++)
             {
 
                 if (string.IsNullOrWhiteSpace(configuration.OutputSettings.InputPatchFilename))
@@ -94,24 +82,7 @@ namespace MMR.Randomizer
                         players_randomized[player] = players_randomizer[player].Randomize(progressReporter);
                         System.Diagnostics.Debug.WriteLine("Survived the [player].Randomize(progressReporter) player: " + players_randomized.Count);
                         //original randomized = randomizer.Randomize(progressReporter);
-
-                        /**************************
-                         * 
-                         * randomized is the object containing playthrough data
-                         * can randomizer.Randomize() be called multiple times then swap adjacent array elems?
-                         * **************************/
-
-                        /*
-                        if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
-                            && configuration.GameplaySettings.LogicMode != LogicMode.Vanilla)
-                        {
-                            //randomized was swaped with list counterpart also spoiler log func
-                            //changed to make multiple logs
-                            System.Diagnostics.Debug.WriteLine("Building spoiler log for player: " + player.ToString());
-                            SpoilerUtils.CreateSpoilerLog(players_randomized[player], configuration.GameplaySettings, configuration.OutputSettings);
-                        }
-
-                        */
+                        //here was original spoilerlog output
                     }
                     catch (RandomizationException ex)
                     {
@@ -124,42 +95,28 @@ namespace MMR.Randomizer
                     }
                 }
             }
+            /****
+             * 
+             * BREAKING BUG IN MERGE WORLDS
+             * 
+             * ****/
+            System.Diagnostics.Debug.WriteLine("Merging Worlds");
+            Merge_worlds(players_randomized);                   //merges worlds
+            System.Diagnostics.Debug.WriteLine("Making ALL spoils");
+            make_spoils(configuration,players_randomized);      //builds spoiler log
 
-
-            Merge_worlds(players_randomized);
-            if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
-                && configuration.GameplaySettings.LogicMode != LogicMode.Vanilla)
-            {
-                for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
-                {
-
-
-                    //randomized was swaped with list counterpart also spoiler log func
-                    //changed to make multiple logs
-                    System.Diagnostics.Debug.WriteLine("Building spoiler log for player: " + player.ToString());
-                    SpoilerUtils.CreateSpoilerLog(players_randomized[player], configuration.GameplaySettings, configuration.OutputSettings);
-
-                }
-            }
-
-            //building the tbl for multi
-            for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
-            {
-                //Multi_tbl_entry
-
-            }
-
-
-
-
-
+            System.Diagnostics.Debug.WriteLine("Building rom table for multi");
+            //this needs to be written table empty if 1 player
+            Multi_tbl_entry[] multi_tbl = null;
+            if (player_count > 1)
+                multi_tbl = build_multi_tbl(players_randomized);  //creates table entry to place in rom
 
 
 
             //building the rom
             //randomized result is object of randomizedresult
             //holds data on play session. itemlist is holds locations of new object
-            for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
+            for (int player = 0; player < player_count; player++)
             {
                 System.Diagnostics.Debug.WriteLine("Building ROM for player: " + player.ToString());
                 if (configuration.OutputSettings.GenerateROM || configuration.OutputSettings.OutputVC || configuration.OutputSettings.GeneratePatch)
@@ -169,7 +126,7 @@ namespace MMR.Randomizer
                         return "Cannot verify input ROM is Majora's Mask (U).";
                     }
 
-                    var builder = new Builder(players_randomized[player], configuration.CosmeticSettings);
+                    var builder = new Builder(players_randomized[player], configuration.CosmeticSettings, multi_tbl);
 
                     try
                     {
@@ -200,7 +157,37 @@ namespace MMR.Randomizer
             return null;
             //return "Generation complete!";
         }
+        public static Multi_tbl_entry[] build_multi_tbl(List<RandomizedResult> players_randomized)
+        {
+            //building the tbl for multi
+            int player_count = players_randomized.Count();
+            for (int player = 0; player < player_count; player++)
+            {
+                //place all items into list
+                
 
+            }
+            return (new List<Multi_tbl_entry>()).ToArray();
+
+        }
+        public static void make_spoils(Configuration configuration, List<RandomizedResult> players_randomized)
+        {
+            if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
+                && configuration.GameplaySettings.LogicMode != LogicMode.Vanilla)
+            {
+                for (int player = 0; player < Int32.Parse(configuration.GameplaySettings.sPlayerCount); player++)
+                {
+
+
+                    //randomized was swaped with list counterpart also spoiler log func
+                    //changed to make multiple logs
+                    System.Diagnostics.Debug.WriteLine("Building spoiler log for player: " + player.ToString());
+                    SpoilerUtils.CreateSpoilerLog(players_randomized[player], configuration.GameplaySettings, configuration.OutputSettings);
+
+                }
+            }
+
+        }
 
         public static void Merge_worlds(List<RandomizedResult> worlds)
         {
