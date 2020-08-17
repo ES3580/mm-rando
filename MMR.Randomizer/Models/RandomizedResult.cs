@@ -36,5 +36,7 @@ namespace MMR.Randomizer.Models
             Seed = seed;
         }
 
+
+
     }
 }

@@ -9,30 +9,12 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using MMR.Randomizer.GameObjects;
 using System.Xml.Schema;
+using MMR.Randomizer.Models.Colors;
+using System.Diagnostics;
 
 namespace MMR.Randomizer
 {
-    //this is the loading of multi table
-    public struct Multi_tbl_entry
-    {
-        public Multi_tbl_entry(UInt64 address, UInt16 scene_num, UInt16 flag_num, UInt16 player_num)
-        {
-            addr = address;
-            scene = scene_num;
-            flag = flag_num;
-            player = player_num;
-            //asdfasdfas
-            //afgawrg
-            //add player to id
 
-        }
-
-        public UInt64 addr { get; }
-        public UInt32 scene { get; }
-        public UInt16 flag { get; }
-        public UInt16 player { get; }
-
-    }
 
 
     public static class ConfigurationProcessor
@@ -100,17 +82,18 @@ namespace MMR.Randomizer
              * BREAKING BUG IN MERGE WORLDS
              * 
              * ****/
+
+
+            place_player_id_item(players_randomized);
+           
             System.Diagnostics.Debug.WriteLine("Merging Worlds");
             Merge_worlds(players_randomized);                   //merges worlds
+
+
             System.Diagnostics.Debug.WriteLine("Making ALL spoils");
             make_spoils(configuration,players_randomized);      //builds spoiler log
 
             System.Diagnostics.Debug.WriteLine("Building rom table for multi");
-            //this needs to be written table empty if 1 player
-            Multi_tbl_entry[] multi_tbl = null;
-            if (player_count > 1)
-                multi_tbl = build_multi_tbl(players_randomized);  //creates table entry to place in rom
-
 
 
             //building the rom
@@ -126,11 +109,14 @@ namespace MMR.Randomizer
                         return "Cannot verify input ROM is Majora's Mask (U).";
                     }
 
-                    var builder = new Builder(players_randomized[player], configuration.CosmeticSettings, multi_tbl);
+                    Multiworld_table mtable = new Multiworld_table(players_randomized[player].ItemList);
+                    var builder = new Builder(players_randomized[player], configuration.CosmeticSettings, mtable);// new Multimulti_tbl);
 
                     try
                     {
+                        Debug.WriteLine("Attempting to build rom");
                         builder.MakeROM(configuration.OutputSettings, progressReporter);
+                        Debug.WriteLine("ROM constructed");
                     }
                     catch (PatchMagicException)
                     {
@@ -157,19 +143,7 @@ namespace MMR.Randomizer
             return null;
             //return "Generation complete!";
         }
-        public static Multi_tbl_entry[] build_multi_tbl(List<RandomizedResult> players_randomized)
-        {
-            //building the tbl for multi
-            int player_count = players_randomized.Count();
-            for (int player = 0; player < player_count; player++)
-            {
-                //place all items into list
-                
 
-            }
-            return (new List<Multi_tbl_entry>()).ToArray();
-
-        }
         public static void make_spoils(Configuration configuration, List<RandomizedResult> players_randomized)
         {
             if ((configuration.OutputSettings.GenerateSpoilerLog || configuration.OutputSettings.GenerateHTMLLog)
@@ -188,63 +162,81 @@ namespace MMR.Randomizer
             }
 
         }
-
+        //places the player id of the world the item is in
+        public static void place_player_id_item(List<RandomizedResult> players_randomized)
+        {
+            int pid = 0;
+            foreach(RandomizedResult world in players_randomized)
+            {
+                foreach(ItemObject item in world.ItemList)
+                {
+                    item.Mulitworld_player_id = pid;
+                }
+                pid++;
+            }
+            
+        }
         public static void Merge_worlds(List<RandomizedResult> worlds)
         {
             int player_count = worlds.Count();
-            int min_items = worlds[0].ItemList.Count();
+            int min_items = worlds[0].ItemList.Count(); //all worlds same items
 
-            //find min
-            foreach ( RandomizedResult i in worlds )
+            System.Diagnostics.Debug.WriteLine("--Merge_worlds: player_count = " +  player_count);
+            System.Diagnostics.Debug.WriteLine("--Merge_worlds: min_items = " + min_items);
+            ItemList p1 = new ItemList();
+            ItemList p2 = new ItemList();
+            //var list_itemlists = new List<ItemList>();
+            for (int item = 0; item < min_items; item++)
             {
-                min_items = (i.ItemList.Count < min_items) ? i.ItemList.Count : min_items;
-                //players_item_list.Add(i.ItemList);
-
-            }
-
-            ItemObject[][] world_items = new ItemObject[player_count][];
-            for( int player = 0; player < player_count; player++ )
-            {
-                world_items[player] = worlds[player].ItemList.ToArray();
-
-            }
-
-            //shuffle
-            Shuffle(new Random(), world_items, min_items);
-
-            for (int player = 0; player < player_count; player++)
-            {
-                ItemList temp = new ItemList();
-                int length = world_items[player].Length;
-                for(int i = 0; i < length; i++ )
+                List<ItemObject> temp_list = new List<ItemObject>();
+                for (int player = 0; player < player_count; player++)
                 {
-                    temp.Add(world_items[0][0]);
-                    
+                    temp_list.Add(worlds[player].ItemList[item]);
+                    //list_itemlists.Add(null);
                 }
-                worlds[player].ItemList = temp;
+                //shuffle
+                temp_list.Shuffle();
 
+                p1.Add(temp_list[0]);
+                p2.Add(temp_list[1]);
+                /*
+                for ( int player = 0; player < player_count; player++)
+                {
+                    list_itemlists[player].Add(temp_list[player]);
+                }*/
             }
+            worlds[0].ItemList = p1;
+            worlds[1].ItemList = p2;
+            /*
+            for( int player = 0; player < player_count; player++)
+            {
+                worlds[player].ItemList = list_itemlists[player];
+            }*/
+
+
             // by this point all the worlds have their items back
         }
 
-        public static void Shuffle<T>(Random random, T[][] array, int lengthRow)
+
+
+
+        private static Random rng = new Random();
+
+        public static void Shuffle<T>(this IList<T> list)
         {
-
-            for (int i = array.Length - 1; i > 0; i--)
+            int n = list.Count;
+            while (n > 1)
             {
-                int i0 = i / lengthRow;
-                int i1 = i % lengthRow;
-
-                int j = random.Next(i + 1);
-                int j0 = j / lengthRow;
-                int j1 = j % lengthRow;
-
-                T temp = array[i0][i1];
-                array[i0][i1] = array[j0][j1];
-                array[j0][j1] = temp;
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
             }
         }
+
     }
+
 
 
     public interface IProgressReporter

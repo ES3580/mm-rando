@@ -20,6 +20,6 @@ namespace MMR.Randomizer.Models
 
         public bool IsRandomized { get; set; }
 
-        public int Mulitoworld_player_id { get; set; }
+        public int Mulitworld_player_id { get; set; }
     }
 }

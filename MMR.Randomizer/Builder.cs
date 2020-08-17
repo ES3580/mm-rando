@@ -25,25 +25,27 @@ using System.Text;
 using System.Text.RegularExpressions;
 using SixLabors.ImageSharp.Formats.Png;
 
+
 namespace MMR.Randomizer
 {
     public class Builder
     {
         private static int player = 0;
         private static int player2 = 0;
+        private int multiworldContext = 0x1EAF100;
         private RandomizedResult _randomized;
         private CosmeticSettings _cosmeticSettings;
         private MessageTable _messageTable;
         private ExtendedObjects _extendedObjects;
-        private Multi_tbl_entry[] _multitable;
+        private Multiworld_table _multiworld_table;
 
-        public Builder(RandomizedResult randomized, CosmeticSettings cosmeticSettings, Multi_tbl_entry[] multitable)
+        public Builder(RandomizedResult randomized, CosmeticSettings cosmeticSettings, Multiworld_table mtable)//, Multi_tbl_entry[] multitable)
         {
             _randomized = randomized;
             _cosmeticSettings = cosmeticSettings;
             _messageTable = new MessageTable();
             _extendedObjects = null;
-            _multitable = multitable;
+            _multiworld_table = mtable;
         }
 
         #region Sequences, sounds and BGM
@@ -967,6 +969,8 @@ namespace MMR.Randomizer
 
         private void WriteItems()
         {
+
+            Debug.WriteLine("Entering WriteItems");
             var freeItems = new List<Item>();
             if (_randomized.Settings.LogicMode == LogicMode.Vanilla)
             {
@@ -989,7 +993,9 @@ namespace MMR.Randomizer
                 return;
             }
 
+            Debug.WriteLine("..WriteITems before adding some free");
             //write free item (start item default = Deku Mask)
+            /*
             freeItems.Add(_randomized.ItemList.Find(u => u.NewLocation == Item.MaskDeku).Item);
             freeItems.Add(_randomized.ItemList.Find(u => u.NewLocation == Item.SongHealing).Item);
             freeItems.Add(_randomized.ItemList.Find(u => u.NewLocation == Item.StartingSword).Item);
@@ -997,10 +1003,12 @@ namespace MMR.Randomizer
             freeItems.Add(_randomized.ItemList.Find(u => u.NewLocation == Item.StartingHeartContainer1).Item);
             freeItems.Add(_randomized.ItemList.Find(u => u.NewLocation == Item.StartingHeartContainer2).Item);
             WriteFreeItems(freeItems.ToArray());
-
+            */
+            Debug.WriteLine("..WriteItems before swap utils");
             //write everything else
             ItemSwapUtils.ReplaceGetItemTable();
             ItemSwapUtils.InitItems();
+            Debug.WriteLine("..WriteItems after swaputils");
 
             // Write extended object indexes to Get-Item list entries.
             WriteExtendedObjects();
@@ -1053,6 +1061,7 @@ namespace MMR.Randomizer
                 }
             }
 
+            Debug.WriteLine("..WriteItems copy rupee regex");
             var copyRupeesRegex = new Regex(": [0-9]+ Rupees");
             foreach (var newMessage in newMessages)
             {
@@ -1064,9 +1073,12 @@ namespace MMR.Randomizer
                 }
             }
 
+            
             if (_randomized.Settings.UpdateShopAppearance)
             {
+                Debug.WriteLine("..Write Items entering shop shit");
                 // update tingle shops
+                Debug.WriteLine("..writeitems tingle shops");
                 foreach (var messageShopText in Enum.GetValues(typeof(MessageShopText)).Cast<MessageShopText>())
                 {
                     var messageShop = messageShopText.GetAttribute<MessageShopAttribute>();
@@ -1079,7 +1091,7 @@ namespace MMR.Randomizer
                         Message = string.Format(messageShop.MessageFormat, item1.Name() + " ", messageShop.Prices[0], item2.Name() + " ", messageShop.Prices[1])
                     });
                 }
-
+                Debug.WriteLine("..writeitems business scrub");
                 // update business scrub
                 var businessScrubItem = _randomized.ItemList.First(io => io.NewLocation == Item.HeartPieceTerminaBusinessScrub).Item;
                 newMessages.Add(new MessageEntry
@@ -1100,7 +1112,7 @@ namespace MMR.Randomizer
                     Header = null,
                     Message = $"What about{MessageUtils.GetPronounOrAmount(businessScrubItem, "").ToLower()} for \u0006100 Rupees\u0000?\u0011 \u0011\u0002\u00C2I'll buy {MessageUtils.GetPronoun(businessScrubItem)}\u0011No thanks\u00BF"
                 });
-
+                Debug.WriteLine("..writeitems biggest goron bag");
                 // update biggest bomb bag purchase
                 var biggestBombBagItem = _randomized.ItemList.First(io => io.NewLocation == Item.UpgradeBiggestBombBag).Item;
                 newMessages.Add(new MessageEntry
@@ -1127,7 +1139,7 @@ namespace MMR.Randomizer
                     Header = null,
                     Message = $"\x1E\x38\x81I'll give you {MessageUtils.GetArticle(biggestBombBagItem, "my ")}\u0001{biggestBombBagItem.Name()}\u0000, regularly priced at \u00061000 Rupees\u0000, for just \u0006200 Rupees\u0000!\u0019\u00BF".Wrap(35, "\u0011")
                 });
-
+                Debug.WriteLine("..writeitems swamp scrub purchase");
                 // update swamp scrub purchase
                 var magicBeanItem = _randomized.ItemList.First(io => io.NewLocation == Item.ShopItemBusinessScrubMagicBean).Item;
                 newMessages.Add(new MessageEntry
@@ -1150,7 +1162,7 @@ namespace MMR.Randomizer
                     Header = null,
                     Message = $"\x1E\x3A\u00D2Do you know what {MessageUtils.GetArticle(magicBeanItem)}\u0001{MessageUtils.GetAlternateName(magicBeanItem)}\u0000 {MessageUtils.GetVerb(magicBeanItem)}?".Wrap(35, "\u0011") + $"\u0011I'll sell you{MessageUtils.GetPronounOrAmount(magicBeanItem).ToLower()} for \u000610 Rupees\u0000.\u0019\u00BF"
                 });
-
+                Debug.WriteLine("..WriteItems ocean scrub purchase");
                 // update ocean scrub purchase
                 var greenPotionItem = _randomized.ItemList.First(io => io.NewLocation == Item.ShopItemBusinessScrubGreenPotion).Item;
                 newMessages.Add(new MessageEntry
@@ -1184,6 +1196,7 @@ namespace MMR.Randomizer
                 });
 
                 // update canyon scrub purchase
+                Debug.WriteLine("..WriteItems canyon shop purchase");
                 var bluePotionItem = _randomized.ItemList.First(io => io.NewLocation == Item.ShopItemBusinessScrubBluePotion).Item;
                 newMessages.Add(new MessageEntry
                 {
@@ -1257,6 +1270,7 @@ namespace MMR.Randomizer
 
             }
 
+            Debug.WriteLine("..WriteItems done with shop shit, replacing razor entry");
             // replace "Razor Sword is now blunt" message with get-item message for Kokiri Sword.
             newMessages.Add(new MessageEntry
             {
@@ -1708,6 +1722,9 @@ namespace MMR.Randomizer
             progressReporter.ReportProgress(74, "Writing sound effects...");
             WriteSoundEffects(new Random(BitConverter.ToInt32(hash, 0)));
 
+            //progressReporter.ReportProgress(74, "Writing Multiworldtable...");
+            //WriteMultiworldTable();
+
             if (outputSettings.GenerateROM || outputSettings.OutputVC)
             {
                 progressReporter.ReportProgress(75, "Building ROM...");
@@ -1718,6 +1735,8 @@ namespace MMR.Randomizer
                 {
                     progressReporter.ReportProgress(85, "Writing ROM...");
                     RomUtils.WriteROM(outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString()), ROM);
+                    WriteMultiworldTable(outputSettings.OutputROMFilename.Insert(outputSettings.OutputROMFilename.Length - 4, "_" + player2.ToString()), player2.ToString());
+
                 }
 
                 if (outputSettings.OutputVC)
@@ -1729,6 +1748,37 @@ namespace MMR.Randomizer
             progressReporter.ReportProgress(100, "Done!");
             player2 = player2 + 1;
         }
+
+        private void WriteMultiworldTable(string filename, string player)
+        {
+            // Open as binary file.
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite))
+            {
+                Debug.WriteLine("rom write filename: " + filename);
+                // 2.
+                // Important variables:
+
+                stream.Position = multiworldContext;
+                int max = _multiworld_table.entries.Count();
+
+
+                // 4.
+                // Slow loop through the bytes.
+                for (int i = 0; i < max; i++)
+                {
+                    var temp = _multiworld_table.entries[i];
+                    Debug.WriteLine("start " + temp.start_id + " end " + temp.end_id + " player " + player + " -> " + temp.player );
+
+                    stream.Write(_multiworld_table.entries[i].ToArray(),0,8);
+
+                    // 5.
+                    // Increment the variables.
+                    stream.Position += 8;
+                }
+            }
+
+        }
+
 
     }
 
