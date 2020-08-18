@@ -181,32 +181,38 @@ namespace MMR.Randomizer
             int player_count = worlds.Count();
             int min_items = worlds[0].ItemList.Count(); //all worlds same items
 
+            List<RandomizedResult> ordered_worlds = order_worlds(worlds);
+
             System.Diagnostics.Debug.WriteLine("--Merge_worlds: player_count = " +  player_count);
             System.Diagnostics.Debug.WriteLine("--Merge_worlds: min_items = " + min_items);
-            ItemList p1 = new ItemList();
-            ItemList p2 = new ItemList();
+            List<ItemList> p1 = new List<ItemList>();
+            for (int player = 0; player < player_count; player++)
+                p1.Add(new ItemList());
+            //ItemList p2 = new ItemList();
             //var list_itemlists = new List<ItemList>();
             for (int item = 0; item < min_items; item++)
             {
                 List<ItemObject> temp_list = new List<ItemObject>();
                 for (int player = 0; player < player_count; player++)
                 {
-                    temp_list.Add(worlds[player].ItemList[item]);
+                    temp_list.Add(ordered_worlds[player].ItemList[item]);
                     //list_itemlists.Add(null);
                 }
                 //shuffle
                 temp_list.Shuffle();
 
-                p1.Add(temp_list[0]);
-                p2.Add(temp_list[1]);
+                for (int player = 0; player < player_count; player++)
+                    p1[player].Add(temp_list[player]);
+                //p2.Add(temp_list[1]);
                 /*
                 for ( int player = 0; player < player_count; player++)
                 {
                     list_itemlists[player].Add(temp_list[player]);
                 }*/
             }
-            worlds[0].ItemList = p1;
-            worlds[1].ItemList = p2;
+            for (int player = 0; player < player_count; player++)
+                worlds[player].ItemList = p1[player];
+            //worlds[1].ItemList = p2;
             /*
             for( int player = 0; player < player_count; player++)
             {
@@ -217,7 +223,23 @@ namespace MMR.Randomizer
             // by this point all the worlds have their items back
         }
 
+        public static List<RandomizedResult>  order_worlds(List<RandomizedResult> worlds)
+        {
+            List<RandomizedResult> cpy_worlds = worlds;
+            int player_count = worlds.Count;
+            for(int i=0; i<player_count; i++)
+            {
 
+                List<ItemObject> x = worlds[i].ItemList.OrderBy(io => io.NewLocation).ToList();
+                //this is slow?
+                ItemList y = new ItemList();
+                foreach(var item in x)
+                    y.Add(item);
+
+                cpy_worlds[i].ItemList = y;
+            }
+            return cpy_worlds;
+        }
 
 
         private static Random rng = new Random();

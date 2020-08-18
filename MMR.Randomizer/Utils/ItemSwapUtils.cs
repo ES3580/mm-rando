@@ -57,6 +57,7 @@ namespace MMR.Randomizer.Utils
 
         private static void InitGetItemList()
         {
+            System.Diagnostics.Debug.WriteLine("..-> Entering InitGetItemList");
             RomData.GetItemList = new Dictionary<int, GetItemEntry>();
             int f = RomUtils.GetFileIndexForWriting(GET_ITEM_TABLE);
             int baseaddr = GET_ITEM_TABLE - RomData.MMFileList[f].Addr;
@@ -72,6 +73,10 @@ namespace MMR.Randomizer.Utils
                     Type = fileData[offset + 3],
                     Message = (short)((fileData[offset + 4] << 8) | fileData[offset + 5]),
                     Object = (short)((fileData[offset + 6] << 8) | fileData[offset + 7])
+
+                    //can i possibly write the player id herer?
+                    //this loop builds the GET_ITEM_TABLE from the itemlist
+                    //Makes change to RomData.GetItemList
                 };
             }
         }
